@@ -71,25 +71,75 @@ class Bird:
         new_rect = rotated_image.get_rect(center=self.img.get_rect(topleft = (self.x, self.y)).center)
         win.blit(rotated_image, new_rect.topleft)
 
-        # ANIMATION IMPLEMENTATION GIVEN IMGS[0-2]
-        #1 2 3 4 // 5 6 7 8 9 // 10 11 12 13 14 // 15 16 17 18 19 // 21
-        #0          1           2                   1               0
-        
-        # if self.img_count < self.ANIMATION_TIME:
-        #     self.img = self.IMGS[0]
-        # elif self.img_count < self.ANIMATION_TIME*2:
-        #     self.img = self.IMGS[1]
-        # elif self.img_count < self.ANIMATION_TIME*3:
-        #     self.img = self.IMGS[2]
-        # elif self.img_count < self.ANIMATION_TIME*4:
-        #     self.img = self.IMGS[1]
-        # elif self.img_count == self.ANIMATION_TIME*4 + 1:
-        #     self.img = self.IMGS[0]
-        #     self.image_count = 0 
-
     def get_mask(self):
         return pygame.mask.from_surface(self.img)
 
+class Pipe:
+    GAP = 200
+    VEL = 5
+
+    def __init__(self, x):
+        self.x = x
+        self.height = 0
+        self.gap = 100 
+
+        self.top = 0
+        self.bot = 0
+        self.PIPE_TOP = pygame.transform.flip(PIPE_IMG, False, True)
+        self.PIPE_BOT = PIPE_IMG
+
+        self.passed = False
+        self.set_height()
+
+    def set_height(self):
+        self.height = random.randrange(50,450)
+        self.top = self.height - self.PIPE_TOP.get_height() 
+        self.bot = self.height + self.GAP
+
+    def move(self):
+        self.x -= self.VEL
+
+    def draw(self, win):
+        win.blit(self.PIPE_TOP, (self.x, self.top))
+        win.blit(self.PIPE_BOT, (self.x, self.bot))
+
+    def collide(self, bird):
+        bird_mask = bird.get_mask()
+        top_mask = pygame.mask.get_surface(self.PIPE_TOP)
+        bot_mask = pygame.mask.get_surface(self.PIPE_BOT)
+
+        top_offset = (self.x - bird.x, self.top - round(bird.y))
+        bot_offset = (self.x - bird.x, self.bot - round(bird.y))
+
+        b_point = bird_mask.overlap(bot_mask, bot_offset)
+        t_point = bird_mask.overlap(top_mask, top_offset)
+
+        if t_point or b_point:
+            return True
+        return False
+
+class Base: 
+    VEL = 5
+    WIDTH = BASE_IMG.get_width()
+    IMG = BASE_IMG
+
+    def __init__(self, y): 
+        self.y = y 
+        self.x1 = 0
+        self.x2 = self.WIDTH
+
+    def move(self):
+        self.x1 -= self.VEL
+        self.x2 -= self.VEL
+
+        if self.x1 + self.WIDTH < 0:
+            self.x1 = self.x2 + self.WIDTH
+        if self.x2 + self.WIDTH < 0:
+            self.x2 = self.x1 + self.WIDTH
+    
+    def draw(self, win):
+        win.blit(self.IMG, (self.x1, self.y))
+        win.blit(self.IMG, (self.x2, self.y))
 
 def draw_window(win, bird):
     win.blit(BG_IMG, (0,0))
@@ -100,14 +150,19 @@ def main():
     bird = Bird(200,200)
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 
-    run = True
+    clock = pygame.time.Clock()
 
+    run = True
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
 
+        #bird.move()
         draw_window(win, bird)
+
+        clock.tick(30)
+
 
     pygame.quit()
     quit()
