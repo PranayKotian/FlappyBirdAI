@@ -4,6 +4,8 @@ import time
 import os 
 import random
 
+pygame.font.init()
+
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
 
@@ -16,6 +18,11 @@ PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "pipe
 BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "base.png")))
 BG_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bg.png")))
 
+STAT_FONT = pygame.font.Font(os.path.join("fonts", "flappy_bird_nums.ttf"), 60)
+END_FONT = pygame.font.Font(os.path.join("fonts", "flappy_bird_nums.ttf"), 80)
+
+FLOOR_HEIGHT = 730
+PIPE_SPAWN = 600 #range [500-infin]
 
 class Bird:
     IMGS = BIRD_IMGS
@@ -105,8 +112,8 @@ class Pipe:
 
     def collide(self, bird):
         bird_mask = bird.get_mask()
-        top_mask = pygame.mask.get_surface(self.PIPE_TOP)
-        bot_mask = pygame.mask.get_surface(self.PIPE_BOT)
+        top_mask = pygame.mask.from_surface(self.PIPE_TOP)
+        bot_mask = pygame.mask.from_surface(self.PIPE_BOT)
 
         top_offset = (self.x - bird.x, self.top - round(bird.y))
         bot_offset = (self.x - bird.x, self.bot - round(bird.y))
@@ -141,16 +148,27 @@ class Base:
         win.blit(self.IMG, (self.x1, self.y))
         win.blit(self.IMG, (self.x2, self.y))
 
-def draw_window(win, bird):
+def draw_window(win, bird, pipes, base, score):
     win.blit(BG_IMG, (0,0))
+
+    for pipe in pipes:
+        pipe.draw(win)
+    base.draw(win)
+    
+    text = STAT_FONT.render(f"{score}", False, 'Black')
+    win.blit(text, (WIN_WIDTH//2 - text.get_width()//2, 30))
+
     bird.draw(win)
     pygame.display.update()
 
 def main():
-    bird = Bird(200,200)
+    bird = Bird(230,350)
+    base = Base(FLOOR_HEIGHT)
+    pipes = [Pipe(PIPE_SPAWN)]
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
-
     clock = pygame.time.Clock()
+
+    score = 0
 
     run = True
     while run:
@@ -159,7 +177,29 @@ def main():
                 run = False
 
         #bird.move()
-        draw_window(win, bird)
+        add_pipe = False
+        rem = []
+        for pipe in pipes:
+            if pipe.collide(bird):
+                pass
+            if pipe.x + pipe.PIPE_TOP.get_width() < 0: 
+                rem.append(pipe)
+            if not pipe.passed and pipe.x < bird.x:
+                pipe.passed = True
+                add_pipe = True
+            pipe.move()
+
+        if add_pipe:
+            score += 1
+            pipes.append(Pipe(PIPE_SPAWN))
+        for r in rem:
+            pipes.remove(r)
+        
+        if bird.x + bird.img.get_height() >= FLOOR_HEIGHT:
+            pass
+
+        base.move()
+        draw_window(win, bird, pipes, base, score)
 
         clock.tick(30)
 
