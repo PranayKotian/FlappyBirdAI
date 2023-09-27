@@ -50,8 +50,8 @@ class Bird:
 
         #displacement
         d = self.vel*self.tick_count + 1.5*self.tick_count**2
-        if d >= 16: 
-            d = 16
+        if d >= 25: 
+            d = 25
         if d < 0:
             d -= 2
         self.y += d

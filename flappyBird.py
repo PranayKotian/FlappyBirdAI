@@ -50,8 +50,8 @@ class Bird:
 
         #displacement
         d = self.vel*self.tick_count + 1.5*self.tick_count**2
-        if d >= 16: 
-            d = 16
+        if d >= 25: 
+            d = 25
         if d < 0:
             d -= 2
         self.y += d
@@ -175,8 +175,11 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                bird.jump()
 
-        #bird.move()
         add_pipe = False
         rem = []
         for pipe in pipes:
@@ -197,14 +200,11 @@ def main():
         
         if bird.y + bird.img.get_height() >= FLOOR_HEIGHT:
             pass
-
+        
+        bird.move()
         base.move()
         draw_window(win, bird, pipes, base, score)
 
         clock.tick(30)
-
-
-    pygame.quit()
-    quit()
 
 main()
