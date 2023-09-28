@@ -245,7 +245,7 @@ def main(genomes, config):
         base.move()
         draw_window(win, birds, pipes, base, score)
 
-        clock.tick(30)
+        clock.tick(60)
 
 def run(config_path):
     config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
